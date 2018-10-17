@@ -8,16 +8,28 @@ import _thread
 import requests
 import argparse
 
+def get_bound(detail_json):
+    bound_list = []
+    for i,(lat1,lat2,lat3,lat4,lon1,lon2,lon3,lon4) in enumerate(zip(detail_json['lat1'],detail_json['lat2'],detail_json['lat3'], detail_json['lat4'],detail_json['lon1'],detail_json['lon2'],detail_json['lon3'], detail_json['lon4'])):
+        w = min(lon1,lon2,lon3,lon4)
+        s = min(lat1,lat2,lat3,lat4)
+        e = max(lon1,lon2,lon3,lon4)
+        n = max(lat1,lat2,lat3,lat4)
+        bound = [w,s,e,n]
+        bound_list.append(bound)
+    return bound_list
+
 def start_detect(detail_json, ip_port):
 
     model_path_list = os.listdir(detail_json['initialization'])
     print(model_path_list)
     model_path = os.path.join(detail_json['initialization'], model_path_list[0])
     print(model_path)
+    bound_list = get_bound(detail_json)
     try:
-        for idx,(img_path,img_save_path,img_uid,img_thumbnail_save_path) in enumerate(zip(detail_json['images_url'],detail_json['result_list'],detail_json['app_images_uid'], detail_json['thumbnail_list'])):
+        for idx,(img_path,img_save_path,img_uid,img_thumbnail_save_path, bound ) in enumerate(zip(detail_json['images_url'],detail_json['result_list'],detail_json['app_images_uid'], detail_json['thumbnail_list'], bound_list)):
             print(img_path,img_save_path,img_uid,img_thumbnail_save_path)
-            conver_images(img_path,model_path,img_save_path,img_thumbnail_save_path,img_uid,detail_json['uid'], ip_port)
+            conver_images(img_path,model_path,bound,img_save_path,img_thumbnail_save_path,img_uid,detail_json['uid'], ip_port)
     except:
         return 
 

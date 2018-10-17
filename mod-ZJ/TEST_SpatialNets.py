@@ -23,7 +23,7 @@ from rasterio.crs import CRS
 # Argument settings
 # ===========================================================
 
-def save_file(save_path, name, data, bound, dst_crs='epsg:3857'):
+def save_file(save_path,  data, bound, dst_crs='epsg:3857'):
     """
     每次运行脚本时，将生成的数据存储到一个临时位置，通过commit方式，将这个文件夹上传入库
     按照给出的影像信息，将影像数据保存为本地文件
@@ -101,7 +101,7 @@ def isfolder( filepath ):
 
     return
 
-def conver_images(file_name, model_path, save_file_name, save_thumbnail_file_name = 'thumb.tif', img_uid = 0, uid = 0, ip_port=''):
+def conver_images(file_name, model_path,bound, save_file_name, save_thumbnail_file_name = 'thumb.tif', img_uid = 0, uid = 0, ip_port=''):
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     GPU_IN_USE = torch.cuda.is_available()
     
@@ -133,7 +133,11 @@ def conver_images(file_name, model_path, save_file_name, save_thumbnail_file_nam
     isfolder(save_file_name)
     isfolder(save_thumbnail_file_name)
 
-    tifffile.imsave(save_file_name,rgb_result)
+    # tifffile.imsave(save_file_name,rgb_result)
+    data = np.transpose(rgb_result,axes=[2,0,1])
+    print(data.shape)
+    save_file(save_path=save_file_name,data=data,bound = bound)
+
     tifffile.imsave(save_thumbnail_file_name,rgb_thumbnail)
 
     json_list = {}
