@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Route
+metadata:
+  name: ng-spatial-nets #路由名称，自定义
+spec:
+  to:
+    kind: Service
+    name: spatial-nets-svc  #svc 服务，和svc 名称一致
+  port:
+targetPort: spatial-nets-3030  #自定义

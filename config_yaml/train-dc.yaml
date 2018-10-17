@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: spatialnets #改成自己的应用名称
+  labels:
+    app: spatialnets #改成自己的应用名称
+    vendor: qingyuan
+spec:
+  replicas: 1
+  selector:
+    name: spatialnets #改成自己的应用名称
+  template:
+    metadata:
+      labels:
+        name: spatialnets #改成自己的应用名称
+        vendor: qingyuan
+    spec:
+      #nodeSelector:
+        #cluster: qypaas
+      #imagePullSecrets:
+        #- name: qyregistrysecret
+      containers:
+      - name: spatialnets #改成自己的应用名称
+        image: ' '
+        imagePullPolicy: Always 
+        env: 
+        - name: QY_OAUTH2_ADDR  #以下写自己的变量
+          value: http://api-gateway-qybe.qyos.com/uaa
+        ports:
+        - containerPort: 7979  #应用端口
+        volumeMounts:
+        - name: data
+          mountPath: /storage   
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage 
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - spatialnets  #改成自己的应用名称
+        from:
+          kind: ImageStreamTag
+          name: 172.30.66.237:5000/nvidia/spatialnets:v0.1  #镜像名称及版本，必须和仓库传的一致
+          namespace: nvidia  #项目名称
+      type: ImageChange

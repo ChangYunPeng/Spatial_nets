@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: spatial-nets
+  name: spatial-nets
+  namespace: nvidia
+spec:
+  restartPolicy: OnFailure
+  containers:
+    - name: spatial-nets
+      image: "172.30.66.237:5000/nvidia/spatialnets:v0.1"
+      command: ["python3"]
+      args: ["/root/workdir/python/TEST_SpatialNets.py"]
+      ports:
+      - containerPort: 7979
+      securityContext:
+          privileged: true
+      resources:
+          limits:
+            nvidia.com/gpu: 0 # requesting 1 GPU
+      volumeMounts:
+      - name: data
+        mountPath: ric-test/storage
+  volumes:
+    - name: data
+      hostPath:
+        path: /storage

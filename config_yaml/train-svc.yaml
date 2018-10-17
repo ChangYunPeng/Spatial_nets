@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spatial-nets-svc # name 自定义，如果应用名称-svc
+  labels:
+    app: spatial-nets #应用名称，必须和dc 定义一致
+    vendor: qingyuan
+spec:
+  type: NodePort
+  ports:
+  - port: 8998 #应用端口，必须和dc 定义一致
+    targetPort: 8998 #应用端口
+    protocol: TCP
+    name: spatial-nets-3030  #自定义
+  # - port: 8014  #如果只有一个端口，以下四行可以注释
+  #   targetPort: 8014
+  #   protocol: TCP
+  #   name: qyweb-8014
+  selector:
+    name: spatial-nets #应用名称
