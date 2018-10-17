@@ -13,6 +13,8 @@ RUN apt-get install -y git
 # update pip
 RUN python3.5 -m pip install pip --upgrade
 RUN python3.5 -m pip install wheel
+RUN python3.5 -m pip install pip -U
+RUN python3.5 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 RUN python3.5 -m pip install numpy \
         enum34 \
