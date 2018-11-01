@@ -109,8 +109,8 @@ if __name__ == '__main__':
     # from BaseHTTPServer import HTTPServer
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ip_port', default='192.168.88.168:8096', type=str)
-    parser.add_argument('--port', default=8998, type=int)
+    parser.add_argument('--ip_port', default='192.168.88.168:8076', type=str)
+    parser.add_argument('--port', default=7798, type=int)
     args = parser.parse_args()
     ip_port = args.ip_port
     port = args.port
