@@ -41,9 +41,9 @@ def turn_rgb2label(arr):
 
 def turn_label2rgb(arr):
     # print arr.max()
-    r_arr = np.zeros(shape=(arr.shape[0] * arr.shape[1]))
-    g_arr = np.zeros(shape=(arr.shape[0] * arr.shape[1]))
-    b_arr = np.zeros(shape=(arr.shape[0] * arr.shape[1]))
+    r_arr = np.ones(shape=(arr.shape[0] * arr.shape[1]))
+    g_arr = np.ones(shape=(arr.shape[0] * arr.shape[1]))
+    b_arr = np.ones(shape=(arr.shape[0] * arr.shape[1]))
 
     for idx in range(len(COLOR_MAP)):
         r_arr = np.where(arr.flatten() == idx , COLOR_MAP[idx][0], r_arr)

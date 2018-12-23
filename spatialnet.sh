@@ -1,0 +1,1 @@
+docker run -it -v /storage:/storage -v /storage/geocloud/user_data:/file_upload_dir spatialnets:v2.0 python3 /root/workdir/python/task_manager.py --kafka_server 192.168.88.168:9092 --ip_port 192.168.88.168:8086

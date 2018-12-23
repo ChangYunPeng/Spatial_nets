@@ -19,6 +19,8 @@ import requests
 import rasterio
 from rasterio.transform import from_origin
 from rasterio.crs import CRS
+import json
+import uuid
 # ===========================================================
 # Argument settings
 # ===========================================================
@@ -33,6 +35,8 @@ def save_file(save_path,  data, bound, dst_crs='epsg:3857'):
     :param dst_crs:  输出影像的坐标系
     :return: bool 创建成功，返回 True; 创建失败，返回 False.
     """
+
+    data = data.astype(np.uint16)
 
     isfolder(save_path)
     try:
@@ -101,9 +105,21 @@ def isfolder( filepath ):
 
     return
 
-def conver_images(file_name, model_path,bound, save_file_name, save_thumbnail_file_name = 'thumb.tif', img_uid = 0, uid = 0, ip_port=''):
+def filter_RS_img(rs_img, rgb_img):
+    rows,cols,channels = rs_img.shape
+    rgb_channels = rgb_img.shape[2]
+    for rows_idx in range(rows):
+        for cols_idx in range(cols):
+            if rs_img[rows_idx, cols_idx,:].max() == 0:
+                rgb_img[rows_idx, cols_idx,:] = np.zeros_like(rgb_img[rows_idx, cols_idx,:])
+    rgb_img = rgb_img.astype(np.uint8)
+    return rgb_img
+
+def conver_images(file_name, model_path='',bound=[], save_file_name='', save_thumbnail_file_name = 'thumb.tif', img_uid = 0, uid = 0, ip_port='', user_id = 4):
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     GPU_IN_USE = torch.cuda.is_available()
+
+    model_path = '/root/workdir/python/DATA/train/SpatialNets_model_path.pth'
     
     model = torch.load(model_path, map_location=lambda storage, loc: storage)
 
@@ -127,26 +143,62 @@ def conver_images(file_name, model_path,bound, save_file_name, save_thumbnail_fi
             patchCNN[i* cropsize_r: (i+1)*cropsize_r, :] = PatchTest(model, GPU_IN_USE, image_crop, [image_crop.shape[0], col])
 
     rgb_result = turn_label2rgb(patchCNN)
+
+    
+    rgb_result = filter_RS_img(tifffile.imread(file_name), rgb_result)
+
+
     thumb_rows, thumb_cols = thumbnail_size_keep_ratio(row,col)
     rgb_thumbnail = cv2.resize(rgb_result,(thumb_rows, thumb_cols))
 
-    isfolder(save_file_name)
-    isfolder(save_thumbnail_file_name)
+    database_name = '/file_upload_dir'
+    dataset_name = str(uuid.uuid1())
+    dataset_name = dataset_name.replace('-','')
+    filename = 'sp_result.tiff'
+    save_test_file_name = os.path.join(database_name, dataset_name, 'sp_test.tiff')
+    isfolder(save_test_file_name)
+    tifffile.imsave(save_file_name,rgb_result)
+    print('tifffile',save_test_file_name)
 
-    # tifffile.imsave(save_file_name,rgb_result)
+    database_name = '/file_upload_dir'
+    dataset_name = str(uuid.uuid1())
+    filename = 'sp_result.tiff'
+    save_file_name = os.path.join(database_name, dataset_name, filename)
+
+    isfolder(save_file_name)
+    # isfolder(save_thumbnail_file_name)
+
     data = np.transpose(rgb_result,axes=[2,0,1])
     print(data.shape)
-    save_file(save_path=save_file_name,data=data,bound = bound)
+    with rasterio.open(file_name) as dataset:
+        save_file(save_path=save_file_name,data=data,bound = dataset.bounds, dst_crs=dataset.crs)
+    print('save success 1')
+    # save_file(save_path=save_file_name,data=data,bound = bound)
 
-    tifffile.imsave(save_thumbnail_file_name,rgb_thumbnail)
+    # tifffile.imsave(save_thumbnail_file_name,rgb_thumbnail)
 
     json_list = {}
     json_list['uid'] = uid
     json_list['app_images_uid'] = img_uid
 
-    url = "http://" + ip_port+ "/model_app/saveDetAppResultFromGPU"
+    url = "http://" + ip_port+ "/model-app/saveDetAppResultFromGPU"
     r = requests.post(url, json=json_list)
     print('post -- ', str(url))
+
+    ak = 'ZmE1MjhmZDBjMTY0NDkzOTlmNWEwNjY1OWY0ODlhODE'
+    JOB_HOSTS ='nginx'
+    # JOB_HOSTS ='192.168.88.168'
+
+    # r = requests.post('http://{}/s/job/imagery-import?ak={}'.format(JOB_HOSTS, ak),
+    #                       data={'name': 'scriptsave', 'params': json.dumps(
+    #                           {'path': save_file_name, 'datasetName': 'dl-class-app'})})
+    # print(json.loads(r.text))
+
+    r = requests.post('http://{}/s/job/imagery-import?userId={}'.format(JOB_HOSTS, user_id),
+                          data={'name': 'scriptsave', 'params': json.dumps(
+                              {'path': dataset_name, 'datasetName': dataset_name})})
+    result = json.loads(r.text)
+    print(result)
 
     return
 
@@ -156,7 +208,7 @@ if __name__=='__main__':
     # cropsize_r = 60
     # split_num = int (float(row)/float(cropsize_r) + 1.0)
     # print(split_num)
-    conver_images(file_name = '/storage/geocloud/test/data/原始影像数据库/GF2/L1A/PMS/4m多光谱/GF2_PMS1_E112.9_N23.3_20170831_L1A0002574623-MSS1.tiff',model_path='/root/workdir/python/DATA/train/SpatialNets_model_path.pth', save_file_name = '/storage/tmp/result.tif',save_thumbnail_file_name = '/storage/tmp/thumbnail.tif')
+    conver_images(file_name = '/storage/geocloud/test/data/原始影像数据库/GF2/L1A/PMS/4m多光谱/GF2_PMS1_E112.9_N23.3_20170831_L1A0002574623-MSS1.tiff',model_path='/root/workdir/python/DATA/train/SpatialNets_model_path.pth',bound=[22.1,22.2,22.3,22.4] ,save_file_name = '/storage/tmp/result.tif',save_thumbnail_file_name = '/storage/tmp/thumbnail.tif')
     # thumbnail_size_keep_ratio(6908,7300)
 
 
