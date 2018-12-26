@@ -45,6 +45,7 @@ import os
 import _thread
 import requests
 import argparse
+from log_utils import write_json_logs
 
 def get_bound(detail_json):
     bound_list = []
@@ -68,21 +69,29 @@ def start_detect(ip_port, detail_json):
         for idx,(img_path,img_save_path,img_uid,img_thumbnail_save_path, bound ) in enumerate(zip(detail_json['images_url'],detail_json['result_list'],detail_json['app_images_uid'], detail_json['thumbnail_list'], bound_list)):
             print(img_path,img_save_path,img_uid,img_thumbnail_save_path)
             conver_images(img_path,model_path,bound,img_save_path,img_thumbnail_save_path,img_uid,detail_json['uid'], ip_port,detail_json['userid'])
-    except:
+        back_json ={}
+        back_json['uid'] = detail_json['uid']
+        back_json['status'] = 1
+        url = "http://" + ip_port+ "/model-app/DoneAppMissionFromGPU"
+        #         url = "http://192.168.88.151:8989"
+        r = requests.post(url, json=back_json)
+        write_json_logs(back_json)
+    except Exception as err:
+        
         back_json ={}
         back_json['uid'] = detail_json['uid']
         back_json['status'] = 0
         url = "http://" + ip_port+ "/model-app/DoneAppMissionFromGPU"
         #         url = "http://192.168.88.151:8989"
         r = requests.post(url, json=back_json)
+        write_json_logs(back_json)
+        print(err)
+        info ={}
+        info['error'] = str(err)
+        write_json_logs(info)
         return 
 
-    back_json ={}
-    back_json['uid'] = detail_json['uid']
-    back_json['status'] = 1
-    url = "http://" + ip_port+ "/model-app/DoneAppMissionFromGPU"
-    #         url = "http://192.168.88.151:8989"
-    r = requests.post(url, json=back_json)
+    
     return
 
 
@@ -172,6 +181,7 @@ def run(kafkaipport, ip_port):
             # script_name = params['uid']
             # user_id = 4
             print(info)
+            write_json_logs(info)
             if params['model_type'] == 1:
                 task_uid = info['uid']
                 name = info['name']
