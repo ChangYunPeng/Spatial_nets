@@ -157,7 +157,7 @@ def conver_images(file_name, model_path='',bound=[], save_file_name='', save_thu
     filename = 'sp_result.tiff'
     save_test_file_name = os.path.join(database_name, dataset_name, 'sp_test.tiff')
     isfolder(save_test_file_name)
-    tifffile.imsave(save_file_name,rgb_result)
+    tifffile.imsave(save_test_file_name,rgb_result)
     print('tifffile',save_test_file_name)
 
     database_name = '/file_upload_dir'
