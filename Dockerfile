@@ -46,7 +46,7 @@ ENV LANG C.UTF-8
 COPY ./mod-ZJ /root/workdir/python
 
 # CMD python3 /root/workdir/python/CNN_server.py --ip_port model-app:8076 --port 7798
-CMD python3 /root/workdir/python/task_manager.py --kafka_server 192.168.88.168:9092 --ip_port server-model-app:8076 --port 7798
+CMD python3 /root/workdir/python/task_manager.py --kafka_server kafka:9092 --ip_port server-model-app:8076 --port 7798
 
 
 # --ip_port  --port
